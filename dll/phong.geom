@@ -1,6 +1,3 @@
-//BUG: the result of scaling is not correct
-//BUG: the lighting of gem is not correct
-//BUG: cannot get the correct texture coordinates
 #version 150 compatibility
 
 layout(triangles) in;
@@ -22,12 +19,14 @@ uniform int level;
 uniform float radius;
 uniform vec4 center;
 
+//TODO: do all things before projection
 vec4 apply_offset(vec4 p) {
 	vec3 p3 = vec3(p);
 	vec3 center3 = vec3(center);
-	return p + normalize(p - center)*(radius - distance(p, center));
-	return p + vec4(normalize(p3-center3)*(radius - distance(p3, center3)), 0.0f);
+
+	vec4 pCenter = gl_ProjectionMatrix * gl_ModelViewMatrix * center;
 	return p;
+	//return p + normalize(p - pCenter)*(radius - distance(p, pCenter));
 }
 
 float triangle_area(vec4 a, vec4 b, vec4 c) {
