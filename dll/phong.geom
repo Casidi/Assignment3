@@ -19,29 +19,24 @@ uniform int level;
 uniform float radius;
 uniform vec4 center;
 
-//TODO: do all things before projection
-vec4 apply_offset(vec4 p) {
-	vec3 p3 = vec3(p);
-	vec3 center3 = vec3(center);
-
-	vec4 pCenter = gl_ProjectionMatrix * gl_ModelViewMatrix * center;
-	//return p;
-	return p + normalize(p - pCenter)*(radius - distance(p, pCenter));
+vec3 apply_offset(vec3 p) {
+	vec3 vCenter = vec3(gl_ModelViewMatrix * center);
+	return p + normalize(p - vec3(vCenter)) * (radius - distance(p, vec3(vCenter)));
 }
 
-float triangle_area(vec4 a, vec4 b, vec4 c) {
-	vec3 v1 = vec3(b - a);
-	vec3 v2 = vec3(c - a);
+float triangle_area(vec3 a, vec3 b, vec3 c) {
+	vec3 v1 = b - a;
+	vec3 v2 = c - a;
 	vec3 v3 = cross(v1, v2);
 	return 0.5f * length(v3);
 }
 
-void interpolate_gs_out(vec4 current_pos) {
+void interpolate_gs_out(vec3 current_pos) {
 	float areas[3];
 	float sum = 0.0f;
 	for(int i = 0; i < 3; ++i) {
 		int next = (i + 1) % 3;
-		areas[i] = triangle_area(current_pos, gl_in[i].gl_Position, gl_in[next].gl_Position);
+		areas[i] = triangle_area(current_pos, gs_in[i].viewPos, gs_in[next].viewPos);
 		sum += areas[i];
 	}
 	
@@ -56,13 +51,12 @@ void interpolate_gs_out(vec4 current_pos) {
 }
 
 void main() {
-	gs_out.tex_coord = vec2(0.0f);
-	vec4 left_vec = (gl_in[1].gl_Position - gl_in[0].gl_Position)/pow(2, level);
-	vec4 right_vec = (gl_in[2].gl_Position - gl_in[0].gl_Position)/pow(2, level);
+	vec3 left_vec = (gs_in[1].viewPos - gs_in[0].viewPos)/pow(2, level);
+	vec3 right_vec = (gs_in[2].viewPos - gs_in[0].viewPos)/pow(2, level);
 	
 	for(int i = 0; i < pow(2, level); ++i) {
-		vec4 start_point = gl_in[0].gl_Position + right_vec*(i+1);
-		gl_Position = apply_offset(start_point);
+		vec3 start_point = gs_in[0].viewPos + right_vec*(i+1);
+		gl_Position = gl_ProjectionMatrix * vec4(apply_offset(start_point), 1.0f);
 		interpolate_gs_out(apply_offset(start_point));
 		EmitVertex();
 		
@@ -72,7 +66,7 @@ void main() {
 			else
 				start_point += left_vec;
 				
-			gl_Position = apply_offset(start_point);
+			gl_Position = gl_ProjectionMatrix * vec4(apply_offset(start_point), 1.0f);
 			interpolate_gs_out(apply_offset(start_point));
 			EmitVertex();
 		}
