@@ -142,7 +142,7 @@ public:
 		shader->use();
 		shader->setUniform("lightNumber", (int)lightCollection->lights.size());
 		shader->setUniform("level", 2);
-		shader->setUniform("radius", 2.0f);
+		shader->setUniform("radius", 1.0f);
 		shader->setUniform("center", centroid);
 		shader->setUniform("color_texture", 0);
 	}
