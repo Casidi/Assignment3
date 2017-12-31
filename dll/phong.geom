@@ -25,8 +25,8 @@ vec4 apply_offset(vec4 p) {
 	vec3 center3 = vec3(center);
 
 	vec4 pCenter = gl_ProjectionMatrix * gl_ModelViewMatrix * center;
-	return p;
-	//return p + normalize(p - pCenter)*(radius - distance(p, pCenter));
+	//return p;
+	return p + normalize(p - pCenter)*(radius - distance(p, pCenter));
 }
 
 float triangle_area(vec4 a, vec4 b, vec4 c) {
