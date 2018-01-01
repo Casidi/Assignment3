@@ -47,6 +47,9 @@ public:
 				for (int i = 0; i < 3; ++i)
 					file >> light.specular[i];
 
+				printf("Light %d loaded\n", count);
+				printf("Position=(%f,%f,%f)\n", light.pos[0], light.pos[1], light.pos[2]);
+
 				lights.push_back(light);
 				++count;
 			}
@@ -145,6 +148,7 @@ public:
 		shader->setUniform("radius", 1.0f);
 		shader->setUniform("center", centroid);
 		shader->setUniform("color_texture", 0);
+		shader->setUniformMat4("viewMat", camera->getViewMatrix());
 	}
 
 	~Scene() {
@@ -331,7 +335,7 @@ public:
 	}
 
 	void addLightY(int step) {
-		lightYOffset += step/5.0f;
+		lightYOffset += step/1.0f;
 	}
 
 	vector<mesh*> models;

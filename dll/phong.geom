@@ -21,6 +21,7 @@ uniform vec4 center;
 
 vec3 apply_offset(vec3 p) {
 	vec3 vCenter = vec3(gl_ModelViewMatrix * center);
+	//return p;
 	return p + normalize(p - vec3(vCenter)) * (radius - distance(p, vec3(vCenter)));
 }
 

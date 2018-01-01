@@ -2,6 +2,7 @@
 
 uniform int lightNumber;
 uniform sampler2D color_texture;
+uniform mat4 viewMat;
 
 in GS_FS_INTERFACE {
 	vec3 viewPos;
@@ -14,7 +15,7 @@ void main() {
 	vec3 viewDir = normalize(-fs_in.viewPos);
 	vec4 sum = vec4(0.0f);
 	for(int i = 0; i < lightNumber; ++i) {
-		vec3 lightDir = normalize(gl_LightSource[i].position.xyz - fs_in.viewPos);
+		vec3 lightDir = normalize(vec3(gl_LightSource[i].position) - fs_in.viewPos);
 		vec3 reflectionDir = normalize(reflect(-lightDir, normDir));
 		
 		vec4 ambient = gl_LightSource[i].ambient * gl_FrontMaterial.ambient;
@@ -24,6 +25,7 @@ void main() {
 		sum += ambient + diffuse + specular;
 	}
 	
-	gl_FragColor = texture(color_texture, fs_in.tex_coord)*sum;
-	//gl_FragColor = sum;
+	//gl_FragColor = texture(color_texture, fs_in.tex_coord)*sum;
+	//gl_FragColor = texture(color_texture, fs_in.tex_coord);
+	gl_FragColor = sum;
 }

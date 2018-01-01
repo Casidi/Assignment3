@@ -62,6 +62,11 @@ public:
 		glUniform4fv(location, 1, value);
 	}
 
+	void setUniformMat4(char *name, float *value) {
+		int location = glGetUniformLocation(program, name);
+		glUniformMatrix4fv(location, 1, GL_FALSE, value);
+	}
+
 	string readEntireFile(string fileName) {
 		ifstream file(fileName);
 		stringstream ss;
