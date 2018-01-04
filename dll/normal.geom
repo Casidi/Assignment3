@@ -6,14 +6,7 @@ layout(line_strip, max_vertices = 50) out;
 in VS_GS_INTERFACE{
 	vec3 viewPos;
 	vec3 normal;
-	vec2 tex_coord;
 } gs_in[];
-
-out GS_FS_INTERFACE{
-	vec3 viewPos;
-	vec3 normal;
-	vec2 tex_coord;
-} gs_out;
 
 uniform int hasTexture;
 uniform int level;
@@ -44,13 +37,9 @@ void interpolate_gs_out(vec3 current_pos) {
 		sum += areas[i];
 	}
 
-	gs_out.viewPos = vec3(0.0f);
-	gs_out.normal = vec3(0.0f);
-	gs_out.tex_coord = vec2(0.0f);
+	vec3 normal = vec3(0.0f);
 	for (int i = 0; i < 3; ++i) {
-		gs_out.viewPos += gs_in[i].viewPos * areas[(i + 1) % 3] / sum;
-		gs_out.normal += gs_in[i].normal * areas[(i + 1) % 3] / sum;
-		gs_out.tex_coord += gs_in[i].tex_coord * areas[(i + 1) % 3] / sum;
+		normal += gs_in[i].normal * areas[(i + 1) % 3] / sum;
 	}
 
 	float normalLength = 1.0f;
@@ -63,16 +52,17 @@ void interpolate_gs_out(vec3 current_pos) {
 
 	gl_Position = gl_ProjectionMatrix * vec4(current_pos, 1.0f);
 	EmitVertex();
-	gl_Position = gl_ProjectionMatrix * vec4(current_pos, 1.0f) + gl_ProjectionMatrix * vec4(gs_out.normal, 1.0f)*normalLength;
+	gl_Position = gl_Position + gl_ProjectionMatrix * vec4(normal, 1.0f)*normalLength;
 	EmitVertex();
 	EndPrimitive();
 }
 
 void main() {
-	vec3 left_vec = (gs_in[1].viewPos - gs_in[0].viewPos) / pow(2, level);
-	vec3 right_vec = (gs_in[2].viewPos - gs_in[0].viewPos) / pow(2, level);
+	float numLayer = pow(2, level);
+	vec3 left_vec = (gs_in[1].viewPos - gs_in[0].viewPos) / numLayer;
+	vec3 right_vec = (gs_in[2].viewPos - gs_in[0].viewPos) / numLayer;
 
-	for (int i = 0; i < pow(2, level); ++i) {
+	for (int i = 0; i < numLayer; ++i) {
 		vec3 start_point = gs_in[0].viewPos + right_vec*(i + 1);
 		
 		interpolate_gs_out(apply_offset(start_point));		

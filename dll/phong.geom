@@ -28,11 +28,11 @@ vec3 apply_offset(vec3 p) {
 		return p;
 }
 
-float triangle_area(vec3 a, vec3 b, vec3 c) {
+float triangle_area_2(vec3 a, vec3 b, vec3 c) {
 	vec3 v1 = b - a;
 	vec3 v2 = c - a;
 	vec3 v3 = cross(v1, v2);
-	return 0.5f * length(v3);
+	return length(v3);
 }
 
 void interpolate_gs_out(vec3 current_pos) {
@@ -40,7 +40,7 @@ void interpolate_gs_out(vec3 current_pos) {
 	float sum = 0.0f;
 	for(int i = 0; i < 3; ++i) {
 		int next = (i + 1) % 3;
-		areas[i] = triangle_area(current_pos, gs_in[i].viewPos, gs_in[next].viewPos);
+		areas[i] = triangle_area_2(current_pos, gs_in[i].viewPos, gs_in[next].viewPos);
 		sum += areas[i];
 	}
 	
@@ -48,17 +48,19 @@ void interpolate_gs_out(vec3 current_pos) {
 	gs_out.normal = vec3(0.0f);
 	gs_out.tex_coord = vec2(0.0f);
 	for (int i = 0; i < 3; ++i) {
-		gs_out.viewPos += gs_in[i].viewPos * areas[(i + 1) % 3] / sum;
-		gs_out.normal += gs_in[i].normal * areas[(i + 1) % 3] / sum;
-		gs_out.tex_coord += gs_in[i].tex_coord * areas[(i + 1) % 3] / sum;
+		float weight = areas[(i + 1) % 3] / sum;
+		gs_out.viewPos += gs_in[i].viewPos * weight;
+		gs_out.normal += gs_in[i].normal * weight;
+		gs_out.tex_coord += gs_in[i].tex_coord * weight;
 	}
 }
 
 void main() {
-	vec3 left_vec = (gs_in[1].viewPos - gs_in[0].viewPos)/pow(2, level);
-	vec3 right_vec = (gs_in[2].viewPos - gs_in[0].viewPos)/pow(2, level);
+	float numLayer = pow(2, level);
+	vec3 left_vec = (gs_in[1].viewPos - gs_in[0].viewPos)/numLayer;
+	vec3 right_vec = (gs_in[2].viewPos - gs_in[0].viewPos)/numLayer;
 	
-	for(int i = 0; i < pow(2, level); ++i) {
+	for(int i = 0; i < numLayer; ++i) {
 		vec3 start_point = gs_in[0].viewPos + right_vec*(i+1);
 		gl_Position = gl_ProjectionMatrix * vec4(apply_offset(start_point), 1.0f);
 		interpolate_gs_out(apply_offset(start_point));

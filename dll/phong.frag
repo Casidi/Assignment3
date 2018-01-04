@@ -5,7 +5,6 @@ uniform int hasTexture;
 
 uniform int lightNumber;
 uniform sampler2D color_texture;
-uniform mat4 viewMat;
 
 in GS_FS_INTERFACE {
 	vec3 viewPos;

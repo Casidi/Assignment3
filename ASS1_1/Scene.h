@@ -151,7 +151,6 @@ public:
 		shader->setUniform("radius", radius);
 		shader->setUniform("center", centroid);
 		shader->setUniform("color_texture", 0);
-		shader->setUniformMat4("viewMat", camera->getViewMatrix());
 		shader->setUniform("hasTexture", (int)textures.size());
 
 		shaderNormal->use();

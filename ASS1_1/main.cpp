@@ -93,8 +93,8 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
-	//scene = new Scene("scene.scene", "light.light", "view.view");
-	scene = new Scene("as3.scene", "as3.light", "as3.view");
+	scene = new Scene("scene.scene", "light.light", "view.view");
+	//scene = new Scene("as3.scene", "as3.light", "as3.view");
 	glutReshapeWindow(scene->getWindowWidth(), scene->getWindowHeight());
 
 	glutDisplayFunc(display);
