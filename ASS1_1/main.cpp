@@ -45,6 +45,9 @@ void motion(int x, int y) {
 void keyboard(unsigned char key, int x, int y) {
 	switch (key)
 	{
+	case 'n':
+		scene->toggleShowNormal();
+		break;
 	case 'f':
 		scene->addLightY(-100);
 		break;

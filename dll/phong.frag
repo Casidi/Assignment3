@@ -1,5 +1,8 @@
 #version 150 compatibility
 
+//dirty
+uniform int hasTexture;
+
 uniform int lightNumber;
 uniform sampler2D color_texture;
 uniform mat4 viewMat;
@@ -25,7 +28,9 @@ void main() {
 		sum += ambient + diffuse + specular;
 	}
 	
-	//gl_FragColor = texture(color_texture, fs_in.tex_coord)*sum;
-	//gl_FragColor = texture(color_texture, fs_in.tex_coord);
-	gl_FragColor = sum;
+	//NOTD: This is a dirty fix
+	if(hasTexture > 0)
+		gl_FragColor = texture(color_texture, fs_in.tex_coord)*sum;
+	else
+		gl_FragColor = sum;
 }

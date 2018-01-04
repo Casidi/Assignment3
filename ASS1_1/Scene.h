@@ -139,22 +139,33 @@ public:
 		lightCollection = new LightCollection(lightFileName);
 		camera = new Camera(cameraFileName);
 		shader = new Shader("phong.vert", "phong.frag", "phong.geom");
+		shaderNormal = new Shader("normal.vert", "normal.frag", "normal.geom");
 
 		float centroid[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
 
+		int level = 2;
+		float radius = 1.0f;
 		shader->use();
 		shader->setUniform("lightNumber", (int)lightCollection->lights.size());
-		shader->setUniform("level", 2);
-		shader->setUniform("radius", 1.0f);
+		shader->setUniform("level", level);
+		shader->setUniform("radius", radius);
 		shader->setUniform("center", centroid);
 		shader->setUniform("color_texture", 0);
 		shader->setUniformMat4("viewMat", camera->getViewMatrix());
+		shader->setUniform("hasTexture", (int)textures.size());
+
+		shaderNormal->use();
+		shaderNormal->setUniform("center", centroid);
+		shaderNormal->setUniform("radius", radius);
+		shaderNormal->setUniform("level", level);
+		shaderNormal->setUniform("hasTexture", (int)textures.size());
 	}
 
 	~Scene() {
 		delete lightCollection;
 		delete camera;
 		delete shader;
+		delete shaderNormal;
 		for (int i = 0; i < models.size(); ++i)
 			delete models[i];
 		for (int i = 0; i < objects.size(); ++i)
@@ -220,6 +231,7 @@ public:
 					}
 				}
 
+				//printf("Sending normal: (%f, %f, %f)\n", model->nList[face[k].n].ptr[0], model->nList[face[k].n].ptr[1], model->nList[face[k].n].ptr[2]);
 				glNormal3fv(model->nList[face[k].n].ptr);
 				glVertex3fv(model->vList[face[k].v].ptr);
 			}
@@ -249,8 +261,6 @@ public:
 	}
 
 	void renderScene() {
-		shader->use();
-
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClearDepth(1.0f);
 		glEnable(GL_DEPTH_TEST);
@@ -272,6 +282,12 @@ public:
 		camera->setViewMatrix(0);
 		glRotatef(sceneRotation, camera->up[0], camera->up[1], camera->up[2]);
 
+		if (isRenderNormal) {
+			shaderNormal->use();
+			renderNotMirror(0);
+		}
+
+		shader->use();
 		renderNotMirror(0);
 
 		glutSwapBuffers();
@@ -287,6 +303,10 @@ public:
 
 	void moveLeft(int step) {
 		sceneRotation += step*10;
+	}
+
+	void toggleShowNormal() {
+		isRenderNormal = !isRenderNormal;
 	}
 
 	int getWindowWidth() {
@@ -350,7 +370,9 @@ public:
 	vector<Texture*> textures;
 	float sceneRotation = 0;
 	float lightYOffset = 0;
+	bool isRenderNormal = true;
 
 	Shader *shader;
+	Shader *shaderNormal;
 };
 

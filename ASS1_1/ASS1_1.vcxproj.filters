@@ -46,5 +46,8 @@
     <None Include="..\dll\phong.frag" />
     <None Include="..\dll\phong.geom" />
     <None Include="..\dll\phong.vert" />
+    <None Include="..\dll\normal.frag" />
+    <None Include="..\dll\normal.geom" />
+    <None Include="..\dll\normal.vert" />
   </ItemGroup>
 </Project>

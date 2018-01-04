@@ -1,15 +1,15 @@
 #version 150 compatibility
 
 layout(triangles) in;
-layout(triangle_strip, max_vertices=50) out;
+layout(line_strip, max_vertices = 50) out;
 
-in VS_GS_INTERFACE {
+in VS_GS_INTERFACE{
 	vec3 viewPos;
 	vec3 normal;
 	vec2 tex_coord;
 } gs_in[];
 
-out GS_FS_INTERFACE {
+out GS_FS_INTERFACE{
 	vec3 viewPos;
 	vec3 normal;
 	vec2 tex_coord;
@@ -38,12 +38,12 @@ float triangle_area(vec3 a, vec3 b, vec3 c) {
 void interpolate_gs_out(vec3 current_pos) {
 	float areas[3];
 	float sum = 0.0f;
-	for(int i = 0; i < 3; ++i) {
+	for (int i = 0; i < 3; ++i) {
 		int next = (i + 1) % 3;
 		areas[i] = triangle_area(current_pos, gs_in[i].viewPos, gs_in[next].viewPos);
 		sum += areas[i];
 	}
-	
+
 	gs_out.viewPos = vec3(0.0f);
 	gs_out.normal = vec3(0.0f);
 	gs_out.tex_coord = vec2(0.0f);
@@ -52,28 +52,38 @@ void interpolate_gs_out(vec3 current_pos) {
 		gs_out.normal += gs_in[i].normal * areas[(i + 1) % 3] / sum;
 		gs_out.tex_coord += gs_in[i].tex_coord * areas[(i + 1) % 3] / sum;
 	}
+
+	float normalLength = 1.0f;
+
+	//NOTE: this is a dirty fix
+	if (hasTexture > 0)
+		normalLength = 0.2f;
+	else
+		normalLength = 10.0f;
+
+	gl_Position = gl_ProjectionMatrix * vec4(current_pos, 1.0f);
+	EmitVertex();
+	gl_Position = gl_ProjectionMatrix * vec4(current_pos, 1.0f) + gl_ProjectionMatrix * vec4(gs_out.normal, 1.0f)*normalLength;
+	EmitVertex();
+	EndPrimitive();
 }
 
 void main() {
-	vec3 left_vec = (gs_in[1].viewPos - gs_in[0].viewPos)/pow(2, level);
-	vec3 right_vec = (gs_in[2].viewPos - gs_in[0].viewPos)/pow(2, level);
-	
-	for(int i = 0; i < pow(2, level); ++i) {
-		vec3 start_point = gs_in[0].viewPos + right_vec*(i+1);
-		gl_Position = gl_ProjectionMatrix * vec4(apply_offset(start_point), 1.0f);
-		interpolate_gs_out(apply_offset(start_point));
-		EmitVertex();
+	vec3 left_vec = (gs_in[1].viewPos - gs_in[0].viewPos) / pow(2, level);
+	vec3 right_vec = (gs_in[2].viewPos - gs_in[0].viewPos) / pow(2, level);
+
+	for (int i = 0; i < pow(2, level); ++i) {
+		vec3 start_point = gs_in[0].viewPos + right_vec*(i + 1);
 		
-		for(int j = 0; j < 2 + i*2; ++j) {
-			if(j%2 == 0)
+		interpolate_gs_out(apply_offset(start_point));		
+
+		for (int j = 0; j < 2 + i * 2; ++j) {
+			if (j % 2 == 0)
 				start_point -= right_vec;
 			else
 				start_point += left_vec;
-				
-			gl_Position = gl_ProjectionMatrix * vec4(apply_offset(start_point), 1.0f);
+
 			interpolate_gs_out(apply_offset(start_point));
-			EmitVertex();
 		}
-		EndPrimitive();
 	}
 }
