@@ -5,10 +5,6 @@
 #include <gl\GL.h>
 #include "Utilityies.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 using namespace std;
 
 class Camera {
@@ -27,11 +23,6 @@ public:
 
 		printf("Camera pos = (%f,%f,%f)\n", pos[0], pos[1], pos[2]);
 		printf("Camera target = (%f,%f,%f)\n", target[0], target[1], target[2]);
-	}
-
-	float* getViewMatrix() {
-		viewMat = glm::lookAt(pos, target, up);
-		return glm::value_ptr(viewMat);
 	}
 
 	void setProjection() {
@@ -60,11 +51,14 @@ public:
 	}
 
 	void setViewMatrix(int jitterPass) {
-		glm::vec3 viewVec = pos - target;
-		glm::vec3 right = glm::cross(up, viewVec);
+		float viewVec[3];
+		for (int i = 0; i < 3; ++i)
+			viewVec[i] = pos[i] - target[i];
+		float right[3];
+		cross(up, viewVec, right);
 		
-		up = glm::normalize(up);
-		right = glm::normalize(right);
+		normalize(up);
+		normalize(right);
 
 		float jitterRadius = 0.2f;
 		float offset[3];
@@ -86,8 +80,7 @@ public:
 			fovy -= step;
 	}
 
-	glm::vec3 pos, target, up;
+	float pos[3], target[3], up[3];
 	float fovy, near, far;
 	int viewport[4];
-	glm::mat4 viewMat;
 };
